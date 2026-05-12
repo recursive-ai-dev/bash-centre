@@ -1,0 +1,19 @@
+# User config and state
+.config/
+.cache/
+
+# Temp runtime files
+/tmp/bash-centre-*
+
+# OS junk
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Dependencies / models
+node_modules
+.venv
+venv
+*.gguf
+*.safetensors
