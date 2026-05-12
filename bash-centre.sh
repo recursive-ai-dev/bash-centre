@@ -98,7 +98,7 @@ bc_main() {
 }
 
 # Trap for clean exit
-trap 'bc_cursor_show; bc_clear; echo; echo "Goodbye!"; exit 0' INT TERM
+trap 'bc_cursor_show; bc_clear; stty sane 2>/dev/null; echo; echo "Goodbye!"; rm -f "$BC_RUNNER_LOG" 2>/dev/null; exit 0' INT TERM
 
 # Go!
 bc_main "$@"

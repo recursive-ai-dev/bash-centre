@@ -52,7 +52,10 @@ bc_runner_run() {
   local h=$(bc_term_height)
   local log_h=$((h-6))
 
-  BC_RUNNER_LOG=$(mktemp /tmp/bash-centre-runner-XXXXXX 2>/dev/null) || BC_RUNNER_LOG="/tmp/bash-centre-runner-$$.log"
+  BC_RUNNER_LOG=$(mktemp "/tmp/bash-centre-runner-XXXXXX" 2>/dev/null) || {
+     BC_RUNNER_LOG="/tmp/bash-centre-runner-$$-$(date +%s).log"
+     : > "$BC_RUNNER_LOG"
+   }
 
   # Track in recent files
   bc_recent_add "$script_path"

@@ -41,7 +41,7 @@ bc_editor_open() {
     bc_notify "File not found: $filepath" "error"
     return 1
   fi
-  IFS=$'\n' read -rd '' -a BC_EDITOR_LINES < "$filepath"
+  IFS=$'\n' read -rd '' -a BC_EDITOR_LINES < <(cat "$filepath"; echo)
   BC_EDITOR_CURSOR_LINE=0
   BC_EDITOR_CURSOR_COL=0
   BC_EDITOR_SCROLL=0
@@ -398,14 +398,18 @@ bc_editor_interface() {
     esac
   done
 
-  if ((BC_EDITOR_MODIFIED)); then
-    local confirm_row=$((h/2))
-    bc_center $confirm_row "$(bc_fg "$BC_THEME_WARNING")Unsaved changes! Save before closing? (y/n)$(bc_reset)"
-    read -rsn1 key
-    case "${key,,}" in
-      y) bc_editor_save ;;
-    esac
-  fi
+if ((BC_EDITOR_MODIFIED)); then
+     local confirm_row=$((h/2))
+     bc_center $confirm_row "$(bc_fg "$BC_THEME_WARNING")Unsaved changes! Save before closing? (y/n/cancel)$(bc_reset)"
+     while true; do
+       read -rsn1 key
+       case "${key,,}" in
+         y) bc_editor_save; break ;;
+         n) return ;;
+         ''|q|Q) return ;;
+       esac
+     done
+   fi
 
   bc_editor_save_session
   bc_cursor_show

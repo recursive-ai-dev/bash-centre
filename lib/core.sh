@@ -13,7 +13,6 @@ BC_SESSION_FILE="$BC_CACHE_DIR/session"
 BC_MAX_RECENT=10
 
 # ── Detect terminal features ──────────────────────────────────────────
-bc_has_truecolor() { [[ $COLORTERM == truecolor || $COLORTERM == 24bit ]]; }
 bc_term_width()  { tput cols 2>/dev/null || echo 80; }
 bc_term_height() { tput lines 2>/dev/null || echo 24; }
 
@@ -21,11 +20,6 @@ bc_term_height() { tput lines 2>/dev/null || echo 24; }
 BC_C_RESET='\e[0m'
 BC_C_BOLD='\e[1m'
 BC_C_DIM='\e[2m'
-BC_C_ITALIC='\e[3m'
-BC_C_UNDERLINE='\e[4m'
-BC_C_BLINK='\e[5m'
-BC_C_REVERSE='\e[7m'
-BC_C_STRIKE='\e[9m'
 
 BC_C_BLACK=0
 BC_C_RED=1
@@ -35,6 +29,8 @@ BC_C_BLUE=4
 BC_C_MAGENTA=5
 BC_C_CYAN=6
 BC_C_WHITE=7
+
+BC_C_DEFAULT=255
 
 # Theme palette — change these to re-theme the entire app
 BC_THEME_PRIMARY=75
@@ -108,7 +104,7 @@ bc_fill_rect() {
   local r=$1 c=$2 h=$3 w=$4 color="${5:-$BC_THEME_BG}"
   for ((i=0; i<h; i++)); do
     bc_cursor_to $((r+i)) "$c"
-    echo -ne "$(bc_bg "$color")$(bc_repeat "$w" " ") $(bc_reset)"
+    echo -ne "$(bc_bg "$color")$(bc_repeat "$w" " ")$(bc_reset)"
   done
 }
 
@@ -166,7 +162,7 @@ bc_gradient_text() {
   local len=${#text} r g b sr sg sb er eg eb
   local s=$start_color e=$end_color
   for ((i=0; i<len; i++)); do
-    local ratio=$((i * 100 / (len - 1)))
+    local ratio=$(( len == 1 ? 0 : i * 100 / (len - 1) ))
     local mixed=$(( s + (e - s) * ratio / 100 ))
     echo -ne "\e[38;5;${mixed}m${text:$i:1}"
   done
@@ -179,19 +175,6 @@ bc_progress_bar() {
   local filled=$((pct * w / 100))
   local empty=$((w - filled))
   echo -ne "$(bc_fg "$color")$(bc_repeat $filled "$BC_CH_BLOCK")$(bc_dim)$(bc_repeat $empty "░")$(bc_reset)"
-}
-
-# ── Spinner ───────────────────────────────────────────────────────────
-BC_SPINNER_FRAMES=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
-bc_spinner() {
-  local msg=$1 pid=$2
-  local i=0
-  while kill -0 "$pid" 2>/dev/null; do
-    echo -ne "\r$(bc_fg "$BC_THEME_PRIMARY")${BC_SPINNER_FRAMES[i]} $(bc_reset)${msg}   "
-    ((i=(i+1)%${#BC_SPINNER_FRAMES[@]}))
-    sleep 0.08
-  done
-  echo -ne "\r$(bc_fg "$BC_THEME_SUCCESS")✔$(bc_reset) ${msg}   \n"
 }
 
 # ── Menu / selector ───────────────────────────────────────────────────

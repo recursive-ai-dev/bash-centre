@@ -185,8 +185,9 @@ bc_filebrowser_loop() {
       fi ;;
       c|C) bc_editor_new ;;
       d|D) if ((count>0 && sel<count)); then
-        local fname=$(basename "${files[sel]}")
-        bc_confirm 12 20 "Delete ${fname}?"
+         local fname
+         fname="$(basename "${files[sel]}")"
+         bc_confirm 12 20 "Delete '${fname}'?"
         if [[ $? -eq 0 ]]; then
           rm -f "${files[sel]}"
           bc_recent_remove "${files[sel]}"
