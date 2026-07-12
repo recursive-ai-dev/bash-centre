@@ -193,8 +193,11 @@ bc_dashboard_examples() {
 
   for f in "${files[@]}"; do
     [[ ! -f $f ]] && continue
-    local name="${f##*/}"; name="${name%.sh}"
-    local firstline=$(head -1 "$f" 2>/dev/null | sed 's/^# //')
+    local name="${f##*/}"
+    name="${name%.sh}"
+    local firstline=""
+    read -r firstline < "$f" 2>/dev/null || true
+    firstline="${firstline#\# }"
     bc_cursor_to "$y" 6
     echo -ne "$(bc_fg "$BC_THEME_PRIMARY")${BC_CH_SELECT}$(bc_reset) $(bc_fg "$BC_THEME_TEXT")$(bc_bold)${name}$(bc_reset)"
     bc_cursor_to "$y" $(( (w/2) + 2 ))
