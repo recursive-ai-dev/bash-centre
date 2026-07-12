@@ -100,14 +100,6 @@ bc_print_at() {
   echo -ne "$*"
 }
 
-bc_fill_rect() {
-  local r=$1 c=$2 h=$3 w=$4 color="${5:-$BC_THEME_BG}"
-  for ((i=0; i<h; i++)); do
-    bc_cursor_to $((r+i)) "$c"
-    echo -ne "$(bc_bg "$color")$(bc_repeat "$w" " ")$(bc_reset)"
-  done
-}
-
 # ── Box drawing ───────────────────────────────────────────────────────
 bc_draw_box() {
   local r=$1 c=$2 h=$3 w=$4
