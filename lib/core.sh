@@ -81,7 +81,7 @@ BC_CH_STAR='★'
 BC_CH_STAR_EMPTY='☆'
 
 # ── Drawing helpers ───────────────────────────────────────────────────
-bc_repeat()  { local c="${2:- }"; printf "%${1}s" '' | tr ' ' "$c"; }
+bc_repeat()  { local c="${2:- }"; printf "%${1}s" '' | sed "s/ /$c/g"; }
 bc_clear()   { echo -ne "\e[2J\e[H"; }
 bc_clear_eol(){ echo -ne "\e[0K"; }
 bc_clear_bol(){ echo -ne "\e[1K"; }
@@ -98,8 +98,6 @@ bc_print_at() {
   local row=$1 col=$2; shift 2
   bc_cursor_to "$row" "$col"
   echo -ne "$*"
-}
-
 bc_fill_rect() {
   local r=$1 c=$2 h=$3 w=$4 color="${5:-$BC_THEME_BG}"
   for ((i=0; i<h; i++)); do
@@ -189,6 +187,10 @@ bc_menu() {
       (( ${#stripped} > width )) && width=${#stripped}
     done <<< "$stripped_all"
   fi
+  for item in "${items[@]}"; do
+    local stripped=$(bc_strip_ansi "$item")
+    (( ${#stripped} > width )) && width=${#stripped}
+  done
   ((width+=4))
 
   bc_cursor_hide
@@ -359,7 +361,7 @@ bc_center() {
   local row=$1; shift
   local text="$*"
   local w=$(bc_term_width)
-  local stripped=$(echo -e "$text" | sed 's/\x1b\[[0-9;]*m//g')
+  local stripped=$(bc_strip_ansi "$text")
   local x=$(( (w - ${#stripped}) / 2 ))
   bc_cursor_to "$row" "$((x+1))"
   echo -ne "$text"
@@ -374,7 +376,20 @@ bc_kv() {
 
 # ── Strip ANSI codes ───────────────────────────────────────────────────
 bc_strip_ansi() {
-  sed 's/\x1b\[[0-9;]*m//g'
+  if [ $# -gt 0 ]; then
+    local text
+    printf -v text "%b" "$*"
+
+    local extglob_set=false
+    shopt -q extglob && extglob_set=true
+    shopt -s extglob
+
+    local stripped="${text//$'\e'\[*([0-9;])m/}"
+    $extglob_set || shopt -u extglob
+    printf "%s" "$stripped"
+  else
+    sed 's/\x1b\[[0-9;]*m//g'
+  fi
 }
 
 # ── Title banner ──────────────────────────────────────────────────────
