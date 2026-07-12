@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Interactive Menu Demo
 # Shows a simple TUI menu using pure bash
 
