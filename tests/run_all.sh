@@ -21,7 +21,7 @@ echo "Tests passing: $pass, failing: $fail"
 if [[ $fail -gt 0 ]]; then
     echo "FAILED"
     # To return an error status without using exit:
-    return 1 2>/dev/null || false
+    exit 1
 else
     echo "SUCCESS"
 fi

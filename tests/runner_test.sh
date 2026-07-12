@@ -23,6 +23,6 @@ if [[ "$test_output" == "$expected_full" ]]; then
   echo "PASS: bc_runner_prompt_args output matched expectations."
 else
   echo "FAIL: Expected '$expected_full', got '$test_output'"
-  # We return 1 instead of exit 1 so that we don't block the bash session.
-  return 1
+  # We exit 1 instead of exit 1 so that we don't block the bash session.
+  exit 1
 fi
