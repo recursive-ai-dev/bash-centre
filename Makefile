@@ -24,4 +24,10 @@ uninstall:
 lint:
 	shellcheck bash-centre.sh lib/*.sh
 
-.PHONY: install uninstall lint
+test:
+	@for t in tests/test_*.sh; do \
+		echo "Running $$t"; \
+		bash "$$t" || exit 1; \
+	done
+
+.PHONY: install uninstall lint test
