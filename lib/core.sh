@@ -183,10 +183,12 @@ bc_menu() {
   local items=("$@")
   local sel=0 len=${#items[@]} key
   local width=0
-  for item in "${items[@]}"; do
-    local stripped=$(echo -e "$item" | sed 's/\x1b\[[0-9;]*m//g')
-    (( ${#stripped} > width )) && width=${#stripped}
-  done
+  if (( len > 0 )); then
+    local stripped_all=$(printf "%b\n" "${items[@]}" | sed 's/\x1b\[[0-9;]*m//g')
+    while IFS= read -r stripped; do
+      (( ${#stripped} > width )) && width=${#stripped}
+    done <<< "$stripped_all"
+  fi
   ((width+=4))
 
   bc_cursor_hide
