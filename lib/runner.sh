@@ -55,9 +55,9 @@ bc_runner_run() {
   local log_h=$((h-6))
 
   BC_RUNNER_LOG=$(mktemp "/tmp/bash-centre-runner-XXXXXX" 2>/dev/null) || {
-     BC_RUNNER_LOG="/tmp/bash-centre-runner-$$-$(date +%s).log"
-     : > "$BC_RUNNER_LOG"
-   }
+     bc_notify "Failed to create temporary log file" "error"
+     return 1
+  }
 
   # Track in recent files
   bc_recent_add "$script_path"
