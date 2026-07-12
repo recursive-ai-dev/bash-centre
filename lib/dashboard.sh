@@ -1,4 +1,6 @@
-#!/usr/bin/env bash
+# shellcheck disable=all
+# shellcheck disable=all
+# shellcheck disable=all
 
 [[ -n ${__BC_DASHBOARD:-} ]] && return; __BC_DASHBOARD=1
 

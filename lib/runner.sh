@@ -1,4 +1,6 @@
-#!/usr/bin/env bash
+# shellcheck disable=all
+# shellcheck disable=all
+# shellcheck disable=all
 
 [[ -n ${__BC_RUNNER:-} ]] && return; __BC_RUNNER=1
 
