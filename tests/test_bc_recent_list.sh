@@ -24,7 +24,8 @@ assert_output() {
 echo "Testing bc_recent_list..."
 
 # Setup: Use a temporary file for testing
-export BC_RECENT_FILE=$(mktemp)
+export BC_RECENT_FILE
+BC_RECENT_FILE=$(mktemp)
 
 # Test 1: File doesn't exist
 rm -f "$BC_RECENT_FILE"
