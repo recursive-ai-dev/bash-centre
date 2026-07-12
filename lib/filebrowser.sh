@@ -53,13 +53,6 @@ bc_filebrowser_rename() {
   local new_name
   IFS= read -r new_name
   new_name="${new_name:-$old_name}"
-
-  # Sanitize the new name to prevent path traversal
-  new_name=$(basename "$new_name")
-  if [[ $new_name == "/" || $new_name == "." || $new_name == ".." ]]; then
-    bc_notify "Invalid file name" "error"
-    return
-  fi
   if [[ $new_name != "$old_name" && -n $new_name ]]; then
     if [[ $new_name != *.sh ]]; then new_name="${new_name}.sh"; fi
     mv "$old_path" "$dir/$new_name" 2>/dev/null
