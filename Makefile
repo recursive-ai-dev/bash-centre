@@ -25,9 +25,6 @@ lint:
 	shellcheck bash-centre.sh lib/*.sh
 
 test:
-	@for t in tests/test_*.sh; do \
-		echo "Running $$t"; \
-		bash "$$t" || exit 1; \
-	done
+	@if [ -f tests/run_all.sh ]; then bash tests/run_all.sh; else echo "No tests to run."; fi
 
 .PHONY: install uninstall lint test

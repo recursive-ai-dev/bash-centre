@@ -77,7 +77,6 @@ bc_editor_save_as() {
   local fname
   IFS= read -r fname
   fname="${fname:-$BC_EDITOR_FILENAME}"
-  fname="$(basename -- "$fname")"
   BC_EDITOR_FILE="$BC_DIR/uploads/$fname"
   BC_EDITOR_FILENAME="$fname"
   bc_editor_save

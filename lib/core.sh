@@ -98,6 +98,8 @@ bc_print_at() {
   local row=$1 col=$2; shift 2
   bc_cursor_to "$row" "$col"
   echo -ne "$*"
+}
+
 bc_fill_rect() {
   local r=$1 c=$2 h=$3 w=$4 color="${5:-$BC_THEME_BG}"
   for ((i=0; i<h; i++)); do
@@ -392,6 +394,7 @@ bc_banner() {
 # ── Config loading ────────────────────────────────────────────────────
 bc_config_load() {
   mkdir -p "$BC_CONFIG_DIR" "$BC_CACHE_DIR"
+# shellcheck disable=SC1090
   [[ -f $BC_CONFIG_FILE ]] && source "$BC_CONFIG_FILE"
 }
 
