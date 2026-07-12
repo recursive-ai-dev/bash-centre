@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2034,SC2155,SC2188,SC1090,SC2148
 # Animated Countdown
 # Shows a countdown from 10 with progress
 
