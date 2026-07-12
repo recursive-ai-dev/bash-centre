@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Animated Countdown
 # Shows a countdown from 10 with progress
 
