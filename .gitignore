@@ -17,3 +17,4 @@ node_modules
 venv
 *.gguf
 *.safetensors
+dummy_uploads/

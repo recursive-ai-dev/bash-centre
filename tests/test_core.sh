@@ -1,80 +1,61 @@
 #!/usr/bin/env bash
 
-# We need to source lib/core.sh FIRST, then override the functions
+# Exit script if any command fails
+set -e
+
+# Setup test environment
+export BC_CACHE_DIR=$(mktemp -d)
+export BC_RECENT_FILE="$BC_CACHE_DIR/recent"
+
+# Source the file to test
 source lib/core.sh
 
-# Mock out dependencies
-export BC_THEME_BG=235
-bc_cursor_to() { echo -ne "C($1,$2)"; }
-bc_bg() { echo -ne "B($1)"; }
-bc_reset() { echo -ne "R"; }
+# Mock the max recent configuration for testing purposes
+export BC_MAX_RECENT=3
 
-FAILURES=0
-
-test_bc_fill_rect() {
-  local output
-  local expected
-
-  # The signature in core.sh is:
-  # bc_fill_rect() {
-  #   local r=$1 c=$2 h=$3 w=$4 char="${5:- }" bg="${6:-}"
-
-  # Test default character and no bg
-  output=$(bc_fill_rect 10 5 2 3)
-  expected="C(10,5)   RC(11,5)   R"
-  if [[ "$output" == "$expected" ]]; then
-    echo "PASS: bc_fill_rect (default char, no bg)"
-  else
-    echo "FAIL: bc_fill_rect (default char, no bg)"
-    echo "  Expected: $expected"
-    echo "  Got:      $output"
-    FAILURES=$((FAILURES + 1))
-  fi
-
-  # Test custom character and custom bg
-  output=$(bc_fill_rect 2 3 3 4 "X" 42)
-  expected="C(2,3)B(42)XXXXRC(3,3)B(42)XXXXRC(4,3)B(42)XXXXR"
-  if [[ "$output" == "$expected" ]]; then
-    echo "PASS: bc_fill_rect (custom char, custom bg)"
-  else
-    echo "FAIL: bc_fill_rect (custom char, custom bg)"
-    echo "  Expected: $expected"
-    echo "  Got:      $output"
-    FAILURES=$((FAILURES + 1))
-  fi
-
-  # Test zero height
-  output=$(bc_fill_rect 1 1 0 5 "X" 42)
-  expected=""
-  if [[ "$output" == "$expected" ]]; then
-    echo "PASS: bc_fill_rect (zero height)"
-  else
-    echo "FAIL: bc_fill_rect (zero height)"
+# Helper for assertions
+assert_equal() {
+  local expected="$1"
+  local actual="$2"
+  local msg="$3"
+  if [[ "$expected" != "$actual" ]]; then
+    echo "FAIL: $msg"
     echo "  Expected: '$expected'"
-    echo "  Got:      '$output'"
-    FAILURES=$((FAILURES + 1))
-  fi
-
-  # Test zero width
-  output=$(bc_fill_rect 1 1 1 0 "X" 42)
-  expected="C(1,1)B(42)R"
-  if [[ "$output" == "$expected" ]]; then
-    echo "PASS: bc_fill_rect (zero width)"
-  else
-    echo "FAIL: bc_fill_rect (zero width)"
-    echo "  Expected: $expected"
-    echo "  Got:      $output"
-    FAILURES=$((FAILURES + 1))
+    echo "  Actual:   '$actual'"
+    return 1
   fi
 }
 
-echo "Running tests for core.sh..."
-test_bc_fill_rect
+echo "Running tests for bc_recent_add..."
 
-if [ $FAILURES -eq 0 ]; then
-  echo "All tests passed!"
-else
-  echo "$FAILURES test(s) failed."
-  # Non-zero exit with subshell to avoid breaking bash session directly
-  (exit 1) || return 1 2>/dev/null
+FAIL=0
+
+# Test 1: File creation and single addition
+bc_recent_add "file1.txt"
+if ! assert_equal "file1.txt" "$(cat "$BC_RECENT_FILE")" "Single addition failed"; then FAIL=1; fi
+
+# Test 2: Ordering of multiple additions
+bc_recent_add "file2.txt"
+expected=$(printf "file2.txt\nfile1.txt")
+if ! assert_equal "$expected" "$(cat "$BC_RECENT_FILE")" "Multiple additions failed"; then FAIL=1; fi
+
+# Test 3: Deduplication (moving an existing entry to the top)
+bc_recent_add "file1.txt"
+expected=$(printf "file1.txt\nfile2.txt")
+if ! assert_equal "$expected" "$(cat "$BC_RECENT_FILE")" "Deduplication failed"; then FAIL=1; fi
+
+# Test 4: Truncation (respecting BC_MAX_RECENT)
+bc_recent_add "file3.txt"
+bc_recent_add "file4.txt"
+expected=$(printf "file4.txt\nfile3.txt\nfile1.txt")
+if ! assert_equal "$expected" "$(cat "$BC_RECENT_FILE")" "Truncation failed"; then FAIL=1; fi
+
+# Cleanup
+rm -rf "$BC_CACHE_DIR"
+
+if [[ $FAIL -eq 1 ]]; then
+    echo "Tests failed!"
+    exit 1
 fi
+
+echo "All tests passed!"

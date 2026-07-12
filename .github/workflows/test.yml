@@ -12,3 +12,4 @@ jobs:
               bash "$f"
             fi
           done
+        run: make test
