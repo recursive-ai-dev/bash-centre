@@ -181,6 +181,12 @@ bc_menu() {
   local items=("$@")
   local sel=0 len=${#items[@]} key
   local width=0
+  if (( len > 0 )); then
+    local stripped_all=$(printf "%b\n" "${items[@]}" | sed 's/\x1b\[[0-9;]*m//g')
+    while IFS= read -r stripped; do
+      (( ${#stripped} > width )) && width=${#stripped}
+    done <<< "$stripped_all"
+  fi
   for item in "${items[@]}"; do
     local stripped=$(bc_strip_ansi "$item")
     (( ${#stripped} > width )) && width=${#stripped}
