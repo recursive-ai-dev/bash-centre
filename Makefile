@@ -24,4 +24,7 @@ uninstall:
 lint:
 	shellcheck bash-centre.sh lib/*.sh
 
-.PHONY: install uninstall lint
+.PHONY: install uninstall lint test
+
+test:
+	./tests/test_core.sh
