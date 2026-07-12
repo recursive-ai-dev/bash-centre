@@ -77,7 +77,6 @@ bc_editor_save_as() {
   local fname
   IFS= read -r fname
   fname="${fname:-$BC_EDITOR_FILENAME}"
-  fname="$(basename -- "$fname")"
   BC_EDITOR_FILE="$BC_DIR/uploads/$fname"
   BC_EDITOR_FILENAME="$fname"
   bc_editor_save
@@ -201,6 +200,17 @@ bc_editor_find_next() {
   [[ -z $BC_EDITOR_SEARCH ]] && return
   local start=$((BC_EDITOR_SEARCH_IDX + 1))
   local i
+  for ((i=start; i<${#BC_EDITOR_LINES[@]}; i++)); do
+    local line="${BC_EDITOR_LINES[i]}"
+    if [[ $line == *"${BC_EDITOR_SEARCH}"* ]]; then
+      local prefix="${line%%"${BC_EDITOR_SEARCH}"*}"
+      BC_EDITOR_CURSOR_LINE=$i
+      BC_EDITOR_CURSOR_COL=${#prefix}
+      BC_EDITOR_SEARCH_IDX=$i
+      return 0
+    fi
+  done
+  for ((i=0; i<start-1; i++)); do
   local total=${#BC_EDITOR_LINES[@]}
   (( total == 0 )) && return 1
 
