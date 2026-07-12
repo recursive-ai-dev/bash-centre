@@ -1,0 +1,15 @@
+name: Test
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Tests
+        run: |
+          for f in tests/test_*.sh; do
+            if [ -f "$f" ]; then
+              bash "$f"
+            fi
+          done
+        run: make test
