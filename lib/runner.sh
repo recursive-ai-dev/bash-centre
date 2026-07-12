@@ -30,7 +30,8 @@ bc_runner_check_syntax() {
 }
 
 bc_runner_prompt_args() {
-  local w=$(bc_term_width)
+  local w
+  w=$(bc_term_width)
   local h=$(bc_term_height)
   local prompt_row=$((h-2))
   bc_cursor_to "$prompt_row" 3
@@ -48,7 +49,8 @@ bc_runner_run() {
   fi
 
   local script_name=$(basename "$script_path")
-  local w=$(bc_term_width)
+  local w
+  w=$(bc_term_width)
   local h=$(bc_term_height)
   local log_h=$((h-6))
 
@@ -188,7 +190,7 @@ bc_runner_loop() {
     return
   fi
   local names=()
-  for f in "${files[@]}"; do names+=("$(basename "$f")"); done
+  for f in "${files[@]}"; do names+=("${f##*/}"); done
   bc_menu 10 10 "${names[@]}"
   local sel=$?
   [[ $sel -ge ${#files[@]} || $sel -eq 255 ]] && return
