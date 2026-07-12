@@ -208,7 +208,7 @@ bc_dashboard_examples() {
   local choice
   read -rsn1 choice
   case "$choice" in
-    '') local sel=0
+    '')
       local names=()
       for f in "${files[@]}"; do
         [[ -f $f ]] && names+=("${f##*/}")
