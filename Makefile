@@ -24,4 +24,7 @@ uninstall:
 lint:
 	shellcheck bash-centre.sh lib/*.sh
 
-.PHONY: install uninstall lint
+test:
+	@if [ -f tests/run_all.sh ]; then bash tests/run_all.sh; else echo "No tests to run."; fi
+
+.PHONY: install uninstall lint test
