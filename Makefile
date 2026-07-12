@@ -22,7 +22,7 @@ uninstall:
 	@echo "Uninstalled."
 
 lint:
-	shellcheck bash-centre.sh lib/*.sh
+	shellcheck bash-centre.sh lib/*.sh examples/*.sh
 
 test:
 	@for t in tests/test_*.sh; do \
