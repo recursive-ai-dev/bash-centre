@@ -81,7 +81,7 @@ BC_CH_STAR='★'
 BC_CH_STAR_EMPTY='☆'
 
 # ── Drawing helpers ───────────────────────────────────────────────────
-bc_repeat()  { local c="${2:- }"; printf "%${1}s" '' | tr ' ' "$c"; }
+bc_repeat()  { local c="${2:- }"; printf "%${1}s" '' | sed "s/ /$c/g"; }
 bc_clear()   { echo -ne "\e[2J\e[H"; }
 bc_clear_eol(){ echo -ne "\e[0K"; }
 bc_clear_bol(){ echo -ne "\e[1K"; }
@@ -98,8 +98,6 @@ bc_print_at() {
   local row=$1 col=$2; shift 2
   bc_cursor_to "$row" "$col"
   echo -ne "$*"
-}
-
 bc_fill_rect() {
   local r=$1 c=$2 h=$3 w=$4 color="${5:-$BC_THEME_BG}"
   for ((i=0; i<h; i++)); do

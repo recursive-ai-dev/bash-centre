@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # System Information Script
 # Displays hardware and OS details in a formatted report
 
