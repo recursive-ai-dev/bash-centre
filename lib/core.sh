@@ -99,10 +99,12 @@ bc_print_at() {
   bc_cursor_to "$row" "$col"
   echo -ne "$*"
 bc_fill_rect() {
-  local r=$1 c=$2 h=$3 w=$4 color="${5:-$BC_THEME_BG}"
+  local r=$1 c=$2 h=$3 w=$4 char="${5:- }" bg="${6:-}"
+  local line=$(bc_repeat "$w" "$char")
   for ((i=0; i<h; i++)); do
     bc_cursor_to $((r+i)) "$c"
-    echo -ne "$(bc_bg "$color")$(bc_repeat "$w" " ")$(bc_reset)"
+    [[ -n $bg ]] && echo -ne "$(bc_bg "$bg")"
+    echo -ne "$line$(bc_reset)"
   done
 }
 
