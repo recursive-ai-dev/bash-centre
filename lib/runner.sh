@@ -40,61 +40,64 @@ bc_runner_prompt_args() {
   echo "$args"
 }
 
-bc_runner_run() {
-  local script_path="$1"
-  if [[ ! -f $script_path ]]; then
-    bc_notify "File not found: $script_path" "error"
-    return 1
-  fi
-
-  local script_name=$(basename "$script_path")
-  local w=$(bc_term_width)
-  local h=$(bc_term_height)
-  local log_h=$((h-6))
-
+bc_runner_setup_log() {
   BC_RUNNER_LOG=$(mktemp "/tmp/bash-centre-runner-XXXXXX" 2>/dev/null) || {
      BC_RUNNER_LOG="/tmp/bash-centre-runner-$$-$(date +%s).log"
      : > "$BC_RUNNER_LOG"
    }
+}
 
-  # Track in recent files
-  bc_recent_add "$script_path"
+bc_runner_draw_ui() {
+  local script_name="$1"
+  local script_args="$2"
+  local log_area_top="$3"
 
-  # Syntax check
-  if ! bc_runner_check_syntax "$script_path"; then
-    return 1
-  fi
-
-  # Prompt for arguments
-  local script_args
-  script_args=$(bc_runner_prompt_args)
+  local w=$(bc_term_width)
+  local h=$(bc_term_height)
+  local log_h=$((h-6))
 
   bc_cursor_hide
   bc_clear
 
-  bc_draw_box 1 1 4 $w "rounded" "$BC_THEME_BORDER"
+  bc_draw_box 1 1 4 "$w" "rounded" "$BC_THEME_BORDER"
   bc_center 2 "$(bc_fg "$BC_THEME_ACCENT")$(bc_bold)  Running: $(bc_fg "$BC_THEME_TEXT")${script_name} $(bc_fg "$BC_THEME_TEXT_DIM")${script_args}$(bc_reset)"
   bc_center 3 "$(bc_dim)$(bc_fg "$BC_THEME_TEXT_DIM")[Space] Pause/Resume  [q] Stop & Return  [r] Restart  [Tab] Scroll output$(bc_reset)"
 
-  local log_area_top=5
-  bc_draw_box "$log_area_top" 1 "$log_h" $w "single" "$BC_THEME_BORDER" "$BC_THEME_BG"
+  bc_draw_box "$log_area_top" 1 "$log_h" "$w" "single" "$BC_THEME_BORDER" "$BC_THEME_BG"
   bc_cursor_to $((log_area_top)) 3
   echo -ne "$(bc_fg "$BC_THEME_TEXT_DIM")$(bc_bold) Output $(bc_reset)"
 
-  local prompt_row=$((log_area_top+log_h+1))
   local status_row=$((log_area_top+log_h))
   bc_cursor_to "$status_row" 3
   echo -ne "$(bc_fg "$BC_THEME_SUCCESS")$(bc_reset) $(bc_fg "$BC_THEME_TEXT")Running...$(bc_reset)"
   bc_cursor_to "$status_row" $((w-20))
   echo -ne "$(bc_dim)$(bc_fg "$BC_THEME_TEXT_DIM")$(date '+%H:%M:%S')$(bc_reset)"
+}
 
-  > "$BC_RUNNER_LOG"
+bc_runner_redraw_ui() {
+  local script_name="$1"
+  local w="$2"
+  local log_h="$3"
+  local log_area_top="$4"
 
-  # Run script with args
-  bash "$script_path" "$script_args" > "$BC_RUNNER_LOG" 2>&1 &
-  BC_RUNNER_PID=$!
-  BC_RUNNING=1
+  bc_draw_box 1 1 4 "$w" "rounded" "$BC_THEME_BORDER"
+  bc_center 2 "$(bc_fg "$BC_THEME_ACCENT")$(bc_bold)  Running: $(bc_fg "$BC_THEME_TEXT")${script_name}$(bc_reset)"
+  bc_center 3 "$(bc_dim)$(bc_fg "$BC_THEME_TEXT_DIM")[Space] Pause/Resume  [q] Stop & Return  [r] Restart  [Tab] Scroll output$(bc_reset)"
+  bc_draw_box "$log_area_top" 1 "$log_h" "$w" "single" "$BC_THEME_BORDER" "$BC_THEME_BG"
+  bc_cursor_to $((log_area_top)) 3
+  echo -ne "$(bc_fg "$BC_THEME_TEXT_DIM")$(bc_bold) Output $(bc_reset)"
+}
 
+bc_runner_watch_execution() {
+  local script_path="$1"
+  local script_args="$2"
+  local script_name="$3"
+  local log_area_top="$4"
+
+  local w=$(bc_term_width)
+  local h=$(bc_term_height)
+  local log_h=$((h-6))
+  local status_row=$((log_area_top+log_h))
   local paused=0
   local scroll_offset=0
 
@@ -103,12 +106,8 @@ bc_runner_run() {
       w=$(bc_term_width)
       h=$(bc_term_height)
       log_h=$((h-6))
-      bc_draw_box 1 1 4 $w "rounded" "$BC_THEME_BORDER"
-      bc_center 2 "$(bc_fg "$BC_THEME_ACCENT")$(bc_bold)  Running: $(bc_fg "$BC_THEME_TEXT")${script_name}$(bc_reset)"
-      bc_center 3 "$(bc_dim)$(bc_fg "$BC_THEME_TEXT_DIM")[Space] Pause/Resume  [q] Stop & Return  [r] Restart  [Tab] Scroll output$(bc_reset)"
-      bc_draw_box "$log_area_top" 1 "$log_h" $w "single" "$BC_THEME_BORDER" "$BC_THEME_BG"
-      bc_cursor_to $((log_area_top)) 3
-      echo -ne "$(bc_fg "$BC_THEME_TEXT_DIM")$(bc_bold) Output $(bc_reset)"
+      status_row=$((log_area_top+log_h))
+      bc_runner_redraw_ui "$script_name" "$w" "$log_h" "$log_area_top"
     fi
 
     if ((!paused)); then
@@ -143,6 +142,17 @@ bc_runner_run() {
   local exit_code=0
   wait "$BC_RUNNER_PID" 2>/dev/null; exit_code=$?
   BC_RUNNING=0
+  return "$exit_code"
+}
+
+bc_runner_show_status() {
+  local exit_code="$1"
+  local log_area_top="$2"
+
+  local w=$(bc_term_width)
+  local h=$(bc_term_height)
+  local log_h=$((h-6))
+  local status_row=$((log_area_top+log_h))
 
   bc_cursor_to "$status_row" 3
   if ((exit_code==0)); then
@@ -150,6 +160,16 @@ bc_runner_run() {
   else
     echo -ne "$(bc_fg "$BC_THEME_ERROR")$(bc_reset) $(bc_fg "$BC_THEME_ERROR")Failed (exit: ${exit_code})$(bc_reset)           "
   fi
+}
+
+bc_runner_post_run_loop() {
+  local script_path="$1"
+  local script_args="$2"
+  local log_area_top="$3"
+
+  local w=$(bc_term_width)
+  local h=$(bc_term_height)
+  local log_h=$((h-6))
 
   bc_center $((h-1)) "$(bc_dim)$(bc_fg "$BC_THEME_TEXT_DIM")[Enter] Back to menu  [r] Run again$(bc_reset)"
   while true; do
@@ -161,7 +181,7 @@ bc_runner_run() {
         bash "$script_path" "$script_args" > "$BC_RUNNER_LOG" 2>&1 &
         BC_RUNNER_PID=$!
         BC_RUNNING=1
-        scroll_offset=0
+        local scroll_offset=0
         while kill -0 "$BC_RUNNER_PID" 2>/dev/null; do
           bc_runner_render_log "$log_area_top" "$log_h" "$w" "$scroll_offset"
           IFS= read -rsn1 -t 0.1 key 2>/dev/null || true
@@ -174,6 +194,41 @@ bc_runner_run() {
         ;;
     esac
   done
+}
+
+bc_runner_run() {
+  local script_path="$1"
+  if [[ ! -f $script_path ]]; then
+    bc_notify "File not found: $script_path" "error"
+    return 1
+  fi
+
+  local script_name=$(basename "$script_path")
+  local log_area_top=5
+
+  bc_runner_setup_log
+  bc_recent_add "$script_path"
+
+  if ! bc_runner_check_syntax "$script_path"; then
+    return 1
+  fi
+
+  local script_args
+  script_args=$(bc_runner_prompt_args)
+
+  bc_runner_draw_ui "$script_name" "$script_args" "$log_area_top"
+
+  > "$BC_RUNNER_LOG"
+  bash "$script_path" "$script_args" > "$BC_RUNNER_LOG" 2>&1 &
+  BC_RUNNER_PID=$!
+  BC_RUNNING=1
+
+  bc_runner_watch_execution "$script_path" "$script_args" "$script_name" "$log_area_top"
+  local exit_code=$?
+
+  bc_runner_show_status "$exit_code" "$log_area_top"
+
+  bc_runner_post_run_loop "$script_path" "$script_args" "$log_area_top"
 
   rm -f "$BC_RUNNER_LOG"
   bc_cursor_show
