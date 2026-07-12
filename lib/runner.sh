@@ -188,7 +188,7 @@ bc_runner_loop() {
     return
   fi
   local names=()
-  for f in "${files[@]}"; do names+=("$(basename "$f")"); done
+  for f in "${files[@]}"; do names+=("${f##*/}"); done
   bc_menu 10 10 "${names[@]}"
   local sel=$?
   [[ $sel -ge ${#files[@]} || $sel -eq 255 ]] && return
