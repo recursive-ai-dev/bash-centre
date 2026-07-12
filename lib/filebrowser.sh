@@ -12,7 +12,7 @@ bc_filebrowser_filter_files() {
     find "$dir" -maxdepth 1 -type f -name '*.sh' 2>/dev/null | sort
   else
     find "$dir" -maxdepth 1 -type f -name '*.sh' 2>/dev/null | sort | while IFS= read -r f; do
-      local base=$(basename "$f")
+      local base="${f##*/}"
       if [[ ${base,,} == *"${filter,,}"* ]]; then
         echo "$f"
       fi
@@ -43,7 +43,7 @@ bc_filebrowser_search_prompt() {
 
 bc_filebrowser_rename() {
   local old_path="$1" sel=$2
-  local old_name=$(basename "$old_path")
+  local old_name="${old_path##*/}"
   local dir=$(dirname "$old_path")
   local w=$(bc_term_width)
   local h=$(bc_term_height)
@@ -120,7 +120,7 @@ bc_filebrowser_loop() {
 
     for ((i=0; i<max_visible && i+scroll<count; i++)); do
       local idx=$((i+scroll))
-      local fname=$(basename "${files[idx]}")
+      local fname="${files[idx]##*/}"
       local fsize=$(stat -c%s "${files[idx]}" 2>/dev/null || echo 0)
       local fsize_str
       if ((fsize>1024)); then fsize_str="$((fsize/1024))KB"; else fsize_str="${fsize}B"; fi
@@ -164,7 +164,9 @@ bc_filebrowser_loop() {
     local footer_text="[↑↓/kj] Nav  [Enter] Run  [e] Edit  [c] New  [d] Del  [/] Filter  [R] Rename  [r] Refresh  [q] Back"
     echo -ne "$(bc_fg "$BC_THEME_TEXT_DIM")${footer_text}$(bc_reset)"
 
-    local info_text="$(bc_dim)$(bc_fg "$BC_THEME_TEXT_DIM")$(date '+%H:%M') | $(bc_reset)$(bc_fg "$BC_THEME_ACCENT")$(basename "${files[sel]:-none}")$(bc_reset)"
+    local tmp_file="${files[sel]:-none}"
+    local info_text
+    info_text="$(bc_dim)$(bc_fg "$BC_THEME_TEXT_DIM")$(date '+%H:%M') | $(bc_reset)$(bc_fg "$BC_THEME_ACCENT")${tmp_file##*/}$(bc_reset)"
     bc_cursor_to "$footer_row" $((w-${#info_text}-3))
     echo -ne "$info_text"
 
@@ -186,7 +188,7 @@ bc_filebrowser_loop() {
       c|C) bc_editor_new ;;
       d|D) if ((count>0 && sel<count)); then
          local fname
-         fname="$(basename "${files[sel]}")"
+         fname="${files[sel]##*/}"
          bc_confirm 12 20 "Delete '${fname}'?"
         if [[ $? -eq 0 ]]; then
           rm -f "${files[sel]}"
