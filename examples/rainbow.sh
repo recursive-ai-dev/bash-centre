@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Rainbow Terminal Demo
 # Prints a colourful gradient pattern in the terminal
 
