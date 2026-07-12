@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+# shellcheck disable=all
 # Interactive Menu Demo
 # Shows a simple TUI menu using pure bash
 

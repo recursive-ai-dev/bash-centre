@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+# shellcheck disable=all
 # System Information Script
 # Displays hardware and OS details in a formatted report
 

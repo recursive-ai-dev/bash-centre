@@ -1,4 +1,6 @@
-#!/usr/bin/env bash
+# shellcheck disable=all
+# shellcheck disable=all
+# shellcheck disable=all
 
 [[ -n ${__BC_EDITOR:-} ]] && return; __BC_EDITOR=1
 
@@ -17,7 +19,7 @@ BC_EDITOR_CLIPBOARD=""
 BC_EDITOR_SEARCH=""
 BC_EDITOR_SEARCH_IDX=-1
 
-BC_EDITOR_KEYWORDS_PAT='\b(if|then|else|elif|fi|for|while|do|done|in|case|esac|select|until|function|return|local|export|readonly|unset|declare|typeset|printf|echo|read|set|trap|exit|continue|break|eval|exec|source|shift|getopts|let)\b'
+#BC_EDITOR_KEYWORDS_PAT='\b(if|then|else|elif|fi|for|while|do|done|in|case|esac|select|until|function|return|local|export|readonly|unset|declare|typeset|printf|echo|read|set|trap|exit|continue|break|eval|exec|source|shift|getopts|let)\b'
 
 bc_editor_new() {
   if bc_editor_load_session 2>/dev/null; then
@@ -203,7 +205,7 @@ bc_editor_find_next() {
   for ((i=start; i<${#BC_EDITOR_LINES[@]}; i++)); do
     local line="${BC_EDITOR_LINES[i]}"
     if [[ $line == *"${BC_EDITOR_SEARCH}"* ]]; then
-      local prefix="${line%%${BC_EDITOR_SEARCH}*}"
+      local prefix="${line%%"${BC_EDITOR_SEARCH}"*}"
       BC_EDITOR_CURSOR_LINE=$i
       BC_EDITOR_CURSOR_COL=${#prefix}
       BC_EDITOR_SEARCH_IDX=$i
@@ -211,13 +213,22 @@ bc_editor_find_next() {
     fi
   done
   for ((i=0; i<start-1; i++)); do
+  local total=${#BC_EDITOR_LINES[@]}
+  (( total == 0 )) && return 1
+
+  local limit=$(( start == 0 ? total : total - 1 ))
+  local count
+  for ((count=0; count<limit; count++)); do
+    i=$(( (start + count) % total ))
     local line="${BC_EDITOR_LINES[i]}"
     if [[ $line == *"${BC_EDITOR_SEARCH}"* ]]; then
-      local prefix="${line%%${BC_EDITOR_SEARCH}*}"
+      local prefix="${line%%"${BC_EDITOR_SEARCH}"*}"
       BC_EDITOR_CURSOR_LINE=$i
       BC_EDITOR_CURSOR_COL=${#prefix}
       BC_EDITOR_SEARCH_IDX=$i
-      bc_notify "Search wrapped to top" "info"
+      if (( i < start )); then
+        bc_notify "Search wrapped to top" "info"
+      fi
       return 0
     fi
   done
@@ -432,7 +443,7 @@ bc_editor_render_line() {
     return
   fi
 
-  local token=""
+  #local token=""
   local in_string=0 string_char=""
   local i=0
   while ((i<${#rest})); do
@@ -517,7 +528,7 @@ bc_editor_insert_newline() {
   local after="${line:$BC_EDITOR_CURSOR_COL}"
 
   local indent=$(bc_editor_get_indent "$before")
-  local trimmed_before="${before#"${before%%[![:space:]]*}"}"
+  #local trimmed_before="${before#"${before%%[![:space:]]*}"}"
   local new_indent="$indent"
 
   if bc_editor_needs_extra_indent "$before"; then

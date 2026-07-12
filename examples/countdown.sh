@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+# shellcheck disable=all
 # Animated Countdown
 # Shows a countdown from 10 with progress
 

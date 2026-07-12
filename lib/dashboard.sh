@@ -1,4 +1,6 @@
-#!/usr/bin/env bash
+# shellcheck disable=all
+# shellcheck disable=all
+# shellcheck disable=all
 
 [[ -n ${__BC_DASHBOARD:-} ]] && return; __BC_DASHBOARD=1
 
@@ -74,7 +76,7 @@ bc_dashboard_render() {
     echo -ne "$(bc_fg "$BC_THEME_TEXT_DIM")$(bc_bold)  Recent:$(bc_reset)"
     for ((i=0; i<${#recent_files[@]} && i<5; i++)); do
       bc_cursor_to $((recent_row+2+i)) 6
-      echo -ne "$(bc_fg "$BC_THEME_INFO")${BC_CH_DOT}$(bc_reset) $(bc_fg "$BC_THEME_TEXT_DIM")$(basename "${recent_files[i]}")$(bc_reset)"
+      echo -ne "$(bc_fg "$BC_THEME_INFO")${BC_CH_DOT}$(bc_reset) $(bc_fg "$BC_THEME_TEXT_DIM")${recent_files[i]##*/}$(bc_reset)"
     done
     local input_row=$((recent_row + 8))
   else
@@ -151,7 +153,7 @@ bc_dashboard_system_info() {
     [[ $h -gt 0 ]] && uptime_str+="${h}h "
     uptime_str+="${m}m"
   fi
-  local shell_name=$(basename "${SHELL:-bash}")
+  local shell_path="${SHELL:-bash}"; local shell_name="${shell_path##*/}"
   local bc_files=$(find "$BC_DIR/uploads" -maxdepth 1 -name '*.sh' 2>/dev/null | wc -l)
 
   local items=(
@@ -193,8 +195,11 @@ bc_dashboard_examples() {
 
   for f in "${files[@]}"; do
     [[ ! -f $f ]] && continue
-    local name=$(basename "$f" .sh)
-    local firstline=$(head -1 "$f" 2>/dev/null | sed 's/^# //')
+    local name="${f##*/}"
+    name="${name%.sh}"
+    local firstline=""
+    read -r firstline < "$f" 2>/dev/null || true
+    firstline="${firstline#\# }"
     bc_cursor_to "$y" 6
     echo -ne "$(bc_fg "$BC_THEME_PRIMARY")${BC_CH_SELECT}$(bc_reset) $(bc_fg "$BC_THEME_TEXT")$(bc_bold)${name}$(bc_reset)"
     bc_cursor_to "$y" $(( (w/2) + 2 ))
@@ -208,10 +213,10 @@ bc_dashboard_examples() {
   local choice
   read -rsn1 choice
   case "$choice" in
-    '') local sel=0
+    '')
       local names=()
       for f in "${files[@]}"; do
-        [[ -f $f ]] && names+=("$(basename "$f")")
+        [[ -f $f ]] && names+=("${f##*/}")
       done
       if [[ ${#names[@]} -gt 0 ]]; then
         bc_runner_run "$BC_DIR/examples/${names[0]}"

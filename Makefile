@@ -22,9 +22,16 @@ uninstall:
 	@echo "Uninstalled."
 
 lint:
-	shellcheck bash-centre.sh lib/*.sh
+	shellcheck bash-centre.sh lib/*.sh examples/*.sh
 
 test:
 	@if [ -f tests/run_all.sh ]; then bash tests/run_all.sh; else echo "No tests to run."; fi
+	@echo "Running tests..."
+	@for test_script in tests/test_*.sh; do \
+		if [ -f "$$test_script" ]; then \
+			bash "$$test_script" || { echo "Test failed: $$test_script"; exit 1; }; \
+		fi \
+	done
+	@echo "All tests completed!"
 
 .PHONY: install uninstall lint test

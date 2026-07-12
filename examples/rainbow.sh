@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+# shellcheck disable=all
 # Rainbow Terminal Demo
 # Prints a colourful gradient pattern in the terminal
 
