@@ -24,4 +24,11 @@ uninstall:
 lint:
 	shellcheck bash-centre.sh lib/*.sh
 
-.PHONY: install uninstall lint
+.PHONY: install uninstall lint test
+
+test:
+	@for test_script in tests/test_*.sh; do \
+		if [ -f "$$test_script" ]; then \
+			if ! bash "$$test_script"; then echo "Tests failed"; exit 1; fi; \
+		fi \
+	done
