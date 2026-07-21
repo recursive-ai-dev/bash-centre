@@ -48,22 +48,6 @@ bc_runner_setup_log() {
      : > "$BC_RUNNER_LOG"
    }
 }
-bc_runner_run() {
-  local script_path="$1"
-  if [[ ! -f $script_path ]]; then
-    bc_notify "File not found: $script_path" "error"
-    return 1
-  fi
-
-  local script_name=$(basename "$script_path")
-  local w=$(bc_term_width)
-  local h=$(bc_term_height)
-  local log_h=$((h-6))
-
-  BC_RUNNER_LOG=$(mktemp "/tmp/bash-centre-runner-XXXXXX" 2>/dev/null) || {
-     BC_RUNNER_LOG="/tmp/bash-centre-runner-$$-$(date +%s).log"
-     : > "$BC_RUNNER_LOG"
-   }
 
 bc_runner_draw_ui() {
   local script_name="$1"
