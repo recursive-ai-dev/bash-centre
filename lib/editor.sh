@@ -213,7 +213,7 @@ bc_editor_find_next() {
       BC_EDITOR_CURSOR_LINE=$i
       BC_EDITOR_CURSOR_COL=${#prefix}
       BC_EDITOR_SEARCH_IDX=$i
-      if (( i < start && count > 0 )); then
+      if (( start > 0 && start + count >= total )); then
         bc_notify "Search wrapped to top" "info"
       fi
       return 0
