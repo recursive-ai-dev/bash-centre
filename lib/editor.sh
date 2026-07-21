@@ -201,24 +201,11 @@ bc_editor_paste() {
 bc_editor_find_next() {
   [[ -z $BC_EDITOR_SEARCH ]] && return
   local start=$((BC_EDITOR_SEARCH_IDX + 1))
-  local i
-  for ((i=start; i<${#BC_EDITOR_LINES[@]}; i++)); do
-    local line="${BC_EDITOR_LINES[i]}"
-    if [[ $line == *"${BC_EDITOR_SEARCH}"* ]]; then
-      local prefix="${line%%"${BC_EDITOR_SEARCH}"*}"
-      BC_EDITOR_CURSOR_LINE=$i
-      BC_EDITOR_CURSOR_COL=${#prefix}
-      BC_EDITOR_SEARCH_IDX=$i
-      return 0
-    fi
-  done
-  for ((i=0; i<start-1; i++)); do
   local total=${#BC_EDITOR_LINES[@]}
   (( total == 0 )) && return 1
 
-  local limit=$(( start == 0 ? total : total - 1 ))
-  local count
-  for ((count=0; count<limit; count++)); do
+  local count i
+  for ((count=0; count<total; count++)); do
     i=$(( (start + count) % total ))
     local line="${BC_EDITOR_LINES[i]}"
     if [[ $line == *"${BC_EDITOR_SEARCH}"* ]]; then
@@ -226,7 +213,7 @@ bc_editor_find_next() {
       BC_EDITOR_CURSOR_LINE=$i
       BC_EDITOR_CURSOR_COL=${#prefix}
       BC_EDITOR_SEARCH_IDX=$i
-      if (( i < start )); then
+      if (( i < start && count > 0 )); then
         bc_notify "Search wrapped to top" "info"
       fi
       return 0
@@ -443,7 +430,6 @@ bc_editor_render_line() {
     return
   fi
 
-  #local token=""
   local in_string=0 string_char=""
   local i=0
   while ((i<${#rest})); do
@@ -528,7 +514,6 @@ bc_editor_insert_newline() {
   local after="${line:$BC_EDITOR_CURSOR_COL}"
 
   local indent=$(bc_editor_get_indent "$before")
-  #local trimmed_before="${before#"${before%%[![:space:]]*}"}"
   local new_indent="$indent"
 
   if bc_editor_needs_extra_indent "$before"; then
